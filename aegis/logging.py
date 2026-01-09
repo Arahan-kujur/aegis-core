@@ -19,8 +19,9 @@ def log_event(event: dict) -> None:
     
     Each event must include:
     - timestamp: When the event occurred
-    - action_type: Type of action (e.g., "spend_money")
-    - cost: Cost associated with the action
+    - action_type: Type of action (e.g., "spend_money", "send_email")
+    - risk: Risk level ("low", "medium", "high")
+    - cost: Cost associated with the action (if applicable)
     - decision: One of "allowed", "paused", "approved", "denied"
     
     Args:
@@ -30,6 +31,7 @@ def log_event(event: dict) -> None:
     log_entry = {
         "timestamp": event.get("timestamp", datetime.utcnow().isoformat()),
         "action_type": event.get("action_type", "unknown"),
+        "risk": event.get("risk", "unknown"),
         "cost": event.get("cost", 0.0),
         "decision": event.get("decision", "unknown")
     }
