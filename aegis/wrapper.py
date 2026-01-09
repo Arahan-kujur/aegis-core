@@ -15,7 +15,7 @@ from typing import Any, Dict
 from datetime import datetime
 from aegis.approvals import request_approval
 from aegis.logging import log_event
-from aegis.rules import evaluate_risk
+from aegis.rules import evaluate_risk, POLICY_VERSION
 
 
 class AegisWrapper:
@@ -111,6 +111,7 @@ class AegisWrapper:
             # Auto-approve low and medium risk actions
             log_event({
                 "timestamp": datetime.utcnow().isoformat(),
+                "policy_version": POLICY_VERSION,
                 "action_type": action_type,
                 "risk": risk,
                 "cost": cost,
@@ -122,6 +123,7 @@ class AegisWrapper:
         # High risk: pause and request human approval
         log_event({
             "timestamp": datetime.utcnow().isoformat(),
+            "policy_version": POLICY_VERSION,
             "action_type": action_type,
             "risk": risk,
             "cost": cost,
@@ -147,16 +149,18 @@ class AegisWrapper:
                 "explanation": explanation
             }
         
-        approved = request_approval(action_dict)
+        approved, human_identity = request_approval(action_dict)
         
         # Log human decision
         log_event({
             "timestamp": datetime.utcnow().isoformat(),
+            "policy_version": POLICY_VERSION,
             "action_type": action_type,
             "risk": risk,
             "cost": cost,
             "explanation": explanation,
-            "decision": "approved" if approved else "denied"
+            "decision": "approved" if approved else "denied",
+            "approved_by": human_identity
         })
         
         # Resume or stop based on approval response

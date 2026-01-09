@@ -8,6 +8,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any
+from aegis.rules import POLICY_VERSION
 
 
 LOG_FILE = Path("logs.jsonl")
@@ -31,11 +32,16 @@ def log_event(event: dict) -> None:
     # Ensure event has required fields
     log_entry = {
         "timestamp": event.get("timestamp", datetime.utcnow().isoformat()),
+        "policy_version": POLICY_VERSION,
         "action_type": event.get("action_type", "unknown"),
         "risk": event.get("risk", "unknown"),
         "cost": event.get("cost", 0.0),
         "decision": event.get("decision", "unknown")
     }
+    
+    # Add approved_by for approved/denied decisions
+    if event.get("decision") in ["approved", "denied"]:
+        log_entry["approved_by"] = event.get("approved_by", "unknown")
     
     # Add any additional fields from the event
     for key, value in event.items():

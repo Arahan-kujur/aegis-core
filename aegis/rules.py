@@ -7,6 +7,9 @@ Rules are simple Python dictionaries that can be customized.
 
 from typing import Dict, Any, Tuple
 
+# Policy version constant
+POLICY_VERSION = "v1"
+
 # Default rules that reproduce current v2 behavior
 DEFAULT_RULES = {
     "spend_money": {

@@ -15,6 +15,7 @@ import uvicorn
 # Global in-memory store for pending approvals
 _pending_approvals: Dict[str, Dict] = {}
 _approval_results: Dict[str, Optional[bool]] = {}
+_approval_identities: Dict[str, str] = {}
 _approval_events: Dict[str, threading.Event] = {}
 
 # FastAPI app instance
@@ -51,11 +52,13 @@ async def get_approval_page(approval_id: str):
         <p><strong>Details:</strong> {details}</p>
         <hr>
         <form method="post" action="/approve/{approval_id}">
+            <p><strong>Approved by (name or email):</strong> <input type="text" name="approved_by" required style="padding: 5px; width: 300px;"></p>
             <input type="hidden" name="decision" value="approve">
             <button type="submit" style="background-color: green; color: white; padding: 10px 20px; font-size: 16px;">Approve</button>
         </form>
         <br>
         <form method="post" action="/approve/{approval_id}">
+            <p><strong>Denied by (name or email):</strong> <input type="text" name="approved_by" required style="padding: 5px; width: 300px;"></p>
             <input type="hidden" name="decision" value="deny">
             <button type="submit" style="background-color: red; color: white; padding: 10px 20px; font-size: 16px;">Deny</button>
         </form>
@@ -66,16 +69,21 @@ async def get_approval_page(approval_id: str):
 
 
 @app.post("/approve/{approval_id}")
-async def post_approval_decision(approval_id: str, decision: str = Form(...)):
+async def post_approval_decision(approval_id: str, decision: str = Form(...), approved_by: str = Form(...)):
     """
     Record approval decision and unblock waiting agent.
     """
     if approval_id not in _pending_approvals:
         return HTMLResponse("<h1>Approval not found</h1>", status_code=404)
     
-    # Record decision
+    # Validate approved_by is not empty
+    if not approved_by or not approved_by.strip():
+        return HTMLResponse("<h1>Error</h1><p>Approved by field is required.</p>", status_code=400)
+    
+    # Record decision and human identity
     approved = decision.lower() == "approve"
     _approval_results[approval_id] = approved
+    _approval_identities[approval_id] = approved_by.strip()
     
     # Unblock the waiting agent
     if approval_id in _approval_events:
@@ -103,7 +111,7 @@ if _server_thread is None:
     _server_thread = _start_server()
 
 
-def request_approval(action: dict) -> bool:
+def request_approval(action: dict) -> tuple:
     """
     Request human approval for a risky action via web interface.
     
@@ -117,7 +125,9 @@ def request_approval(action: dict) -> bool:
             - details: Additional details about the action
             
     Returns:
-        True if approved, False if denied
+        Tuple of (approved: bool, human_identity: str)
+        - approved: True if approved, False if denied
+        - human_identity: Name or email of the person who made the decision
     """
     # Generate unique approval ID
     approval_id = str(uuid.uuid4())
@@ -139,8 +149,9 @@ def request_approval(action: dict) -> bool:
     # Block execution until approval is received
     event.wait()
     
-    # Get the result
+    # Get the result and human identity
     result = _approval_results.pop(approval_id, False)
+    human_identity = _approval_identities.pop(approval_id, "unknown")
     del _approval_events[approval_id]
     
-    return result
+    return result, human_identity
