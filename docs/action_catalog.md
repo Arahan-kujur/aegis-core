@@ -41,3 +41,39 @@ This document describes all action types supported by Aegis, their risk characte
 
 **Rationale**: API calls are a fundamental operation for many agents. While they carry some risk (data exposure, costs, side effects), they are typically safe when properly scoped. Medium risk ensures logging and monitoring without blocking every API call. Organizations can customize this rule to require approval for specific API endpoints or patterns.
 
+## delete_data
+
+**Description**: Actions that delete data from databases, file systems, or storage systems.
+
+**Why it is risky**: Data deletion is irreversible. Once data is deleted, it cannot be recovered unless backups exist. Accidental deletion can cause permanent data loss, compliance violations, or business disruption.
+
+**Default risk level**: High (fixed)
+
+**Requires human approval**: Yes (always)
+
+**Rationale**: Data deletion has permanent consequences. Even with backups, recovery is time-consuming and may cause service disruption. Requiring human approval for all deletion actions ensures that data loss is intentional and authorized.
+
+## send_bulk_email
+
+**Description**: Actions that send email messages to multiple recipients (typically 10+ recipients or bulk mailing operations).
+
+**Why it is risky**: Bulk email operations can trigger spam filters, damage sender reputation, violate anti-spam laws, or expose sensitive information to wrong recipients. Once sent, emails cannot be recalled.
+
+**Default risk level**: High (fixed)
+
+**Requires human approval**: Yes (always)
+
+**Rationale**: Bulk email has reputation and legal consequences. A single mistake can blacklist your domain or violate regulations. Requiring human approval ensures bulk operations are reviewed for recipient lists, content, and compliance before sending.
+
+## deploy_code
+
+**Description**: Actions that deploy code or configuration changes to production systems.
+
+**Why it is risky**: Production deployments can cause system failures, service outages, or security vulnerabilities. A bad deployment can affect all users immediately and may require rollback procedures.
+
+**Default risk level**: High (fixed)
+
+**Requires human approval**: Yes (always)
+
+**Rationale**: Production changes have immediate impact on all users. Even with testing, production environments can behave differently. Requiring human approval ensures deployments are reviewed for correctness, timing, and rollback plans before execution.
+

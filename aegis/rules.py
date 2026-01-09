@@ -28,6 +28,18 @@ DEFAULT_RULES = {
         "type": "fixed",
         "risk": "medium"
     },
+    "delete_data": {
+        "type": "fixed",
+        "risk": "high"
+    },
+    "send_bulk_email": {
+        "type": "fixed",
+        "risk": "high"
+    },
+    "deploy_code": {
+        "type": "fixed",
+        "risk": "high"
+    },
     # Default for unknown action types
     "_default": {
         "type": "fixed",
@@ -82,7 +94,20 @@ def evaluate_risk(action: dict, rules: dict = None, cost_limit: float = 100.0) -
     elif rule_type == "fixed":
         # Fixed risk level for action type
         risk = rule.get("risk", "low")
-        explanation = f"Action type '{action_type}' is configured as {risk} risk"
+        
+        # Provide specific explanations for high-risk actions
+        if risk == "high":
+            if action_type == "delete_data":
+                explanation = "Deleting data is irreversible and requires human approval"
+            elif action_type == "send_bulk_email":
+                explanation = "Sending bulk email can cause reputation damage and requires human approval"
+            elif action_type == "deploy_code":
+                explanation = "Deploying code to production can cause system failures and requires human approval"
+            else:
+                explanation = f"Action type '{action_type}' is configured as high risk and requires human approval"
+        else:
+            explanation = f"Action type '{action_type}' is configured as {risk} risk"
+        
         return (risk, explanation)
     
     else:

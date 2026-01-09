@@ -29,16 +29,18 @@ class AegisWrapper:
     4. If approved, allow execution; if denied, stop
     """
     
-    def __init__(self, agent: Any, cost_limit: float = 100.0):
+    def __init__(self, agent: Any, cost_limit: float = 100.0, mode: str = "dev"):
         """
         Initialize the Aegis wrapper.
         
         Args:
             agent: The LangChain agent to wrap
             cost_limit: Maximum allowed cost before requiring approval
+            mode: Operating mode - "dev" (default) or "prod"
         """
         self.agent = agent
         self.cost_limit = cost_limit
+        self.mode = mode if mode in ("dev", "prod") else "dev"
     
     def _normalize_action(self, tool_name: str, tool_input: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -131,6 +133,11 @@ class AegisWrapper:
             "decision": "paused"
         })
         
+        # Mode-specific console messaging
+        if self.mode == "prod":
+            print(f"\n[AEGIS PROD] Blocking high-risk action: {action_type}")
+            print(f"[AEGIS PROD] Execution paused - awaiting human approval")
+        
         # Convert to format expected by request_approval
         # Maintain backward compatibility with spend_money
         if action_type == "spend_money":
@@ -191,6 +198,29 @@ class AegisWrapper:
         # This is a placeholder that demonstrates the control flow
         # Actual LangChain integration would use callbacks or middleware
         return self.agent.run(input_text)
+    
+    @classmethod
+    def from_langchain(cls, agent: Any, **kwargs):
+        """
+        Convenience constructor for LangChain-style agents.
+        
+        This is syntactic sugar that wraps the agent exactly as the
+        normal constructor does. No LangChain-specific logic is applied.
+        
+        Args:
+            agent: The LangChain agent to wrap
+            **kwargs: Additional arguments passed to __init__
+                (e.g., cost_limit, mode)
+        
+        Returns:
+            AegisWrapper instance
+        
+        Example:
+            >>> from langchain.agents import initialize_agent
+            >>> agent = initialize_agent(...)
+            >>> wrapped = AegisWrapper.from_langchain(agent, cost_limit=50.0)
+        """
+        return cls(agent, **kwargs)
     
     def _should_intercept(self, tool_name: str) -> bool:
         """

@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aegis-core"
+version = "1.0.0"
+description = "Human-in-the-loop control layer for AI agents"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.7"
+dependencies = [
+    "fastapi>=0.68.0",
+    "uvicorn>=0.15.0",
+]
+authors = [
+    {name = "Aegis Contributors"}
+]
+keywords = ["ai", "agents", "langchain", "human-in-the-loop", "safety", "control"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/aegis-core"
+Repository = "https://github.com/yourusername/aegis-core"
+Issues = "https://github.com/yourusername/aegis-core/issues"
+
+[project.optional-dependencies]
+dev = []
+
+[tool.setuptools]
+packages = ["aegis"]
+
