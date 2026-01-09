@@ -15,6 +15,7 @@ from typing import Any, Dict
 from datetime import datetime
 from aegis.approvals import request_approval
 from aegis.logging import log_event
+from aegis.rules import evaluate_risk
 
 
 class AegisWrapper:
@@ -43,8 +44,7 @@ class AegisWrapper:
         """
         Convert tool call to normalized action format.
         
-        For spend_money: maps cost to risk level based on cost_limit.
-        For other actions: expects action dict with type, risk, metadata.
+        Uses evaluate_risk() to determine risk level based on rules.
         
         Args:
             tool_name: Name of the tool being called
@@ -53,33 +53,32 @@ class AegisWrapper:
         Returns:
             Normalized action dict with type, risk, metadata
         """
-        # Handle spend_money: map cost to risk level
-        if tool_name == "spend_money":
-            cost = tool_input.get("cost", 0.0)
-            # Map cost thresholds to risk levels
-            if cost <= self.cost_limit:
-                risk = "low"
-            elif cost <= self.cost_limit * 2:
-                risk = "medium"
-            else:
-                risk = "high"
-            
-            return {
-                "type": "spend_money",
-                "risk": risk,
-                "metadata": tool_input
-            }
-        
-        # For other actions, expect normalized format
-        # If already in normalized format, return as-is
+        # If already in normalized format, use it (may or may not have explanation)
         if "type" in tool_input and "risk" in tool_input and "metadata" in tool_input:
+            # Ensure explanation exists, generate if missing
+            if "explanation" not in tool_input:
+                action_for_explanation = {
+                    "type": tool_input["type"],
+                    "metadata": tool_input["metadata"]
+                }
+                _, explanation = evaluate_risk(action_for_explanation, cost_limit=self.cost_limit)
+                tool_input["explanation"] = explanation
             return tool_input
         
-        # Default: treat as low risk if format is unknown
-        return {
+        # Build action dict for risk evaluation
+        action = {
             "type": tool_name,
-            "risk": "low",
             "metadata": tool_input
+        }
+        
+        # Evaluate risk using rules
+        risk, explanation = evaluate_risk(action, cost_limit=self.cost_limit)
+        
+        return {
+            "type": action["type"],
+            "risk": risk,
+            "explanation": explanation,
+            "metadata": action["metadata"]
         }
     
     def _intercept_tool_call(self, tool_name: str, tool_input: Dict[str, Any]) -> bool:
@@ -101,6 +100,7 @@ class AegisWrapper:
         
         action_type = action["type"]
         risk = action["risk"]
+        explanation = action.get("explanation", "No explanation available")
         metadata = action["metadata"]
         
         # Extract cost for logging (if present)
@@ -114,6 +114,7 @@ class AegisWrapper:
                 "action_type": action_type,
                 "risk": risk,
                 "cost": cost,
+                "explanation": explanation,
                 "decision": "allowed"
             })
             return True
@@ -124,6 +125,7 @@ class AegisWrapper:
             "action_type": action_type,
             "risk": risk,
             "cost": cost,
+            "explanation": explanation,
             "decision": "paused"
         })
         
@@ -133,14 +135,16 @@ class AegisWrapper:
             action_dict = {
                 "action_name": action_type,
                 "cost": cost,
-                "details": metadata
+                "details": metadata,
+                "explanation": explanation
             }
         else:
             # Generic action format for approval UI
             action_dict = {
                 "action_name": action_type,
                 "cost": cost if cost > 0 else 0.0,
-                "details": metadata
+                "details": metadata,
+                "explanation": explanation
             }
         
         approved = request_approval(action_dict)
@@ -151,6 +155,7 @@ class AegisWrapper:
             "action_type": action_type,
             "risk": risk,
             "cost": cost,
+            "explanation": explanation,
             "decision": "approved" if approved else "denied"
         })
         

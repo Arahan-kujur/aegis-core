@@ -33,6 +33,7 @@ async def get_approval_page(approval_id: str):
     action_name = action.get("action_name", "unknown")
     cost = action.get("cost", 0.0)
     details = action.get("details", {})
+    explanation = action.get("explanation", "No explanation available")
     
     # Simple HTML with approve/deny buttons
     html = f"""
@@ -46,6 +47,7 @@ async def get_approval_page(approval_id: str):
         <hr>
         <p><strong>Action:</strong> {action_name}</p>
         <p><strong>Cost:</strong> ${cost:.2f}</p>
+        <p><strong>Reason:</strong> {explanation}</p>
         <p><strong>Details:</strong> {details}</p>
         <hr>
         <form method="post" action="/approve/{approval_id}">

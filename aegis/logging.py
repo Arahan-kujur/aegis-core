@@ -22,6 +22,7 @@ def log_event(event: dict) -> None:
     - action_type: Type of action (e.g., "spend_money", "send_email")
     - risk: Risk level ("low", "medium", "high")
     - cost: Cost associated with the action (if applicable)
+    - explanation: Explanation of why the action was auto-approved or requires approval
     - decision: One of "allowed", "paused", "approved", "denied"
     
     Args:
