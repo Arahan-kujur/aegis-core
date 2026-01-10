@@ -5,7 +5,7 @@ Aegis wraps LangChain-style agents and intercepts risky actions,
 requiring human approval before execution.
 """
 
-VERSION = "1.0.0"
+VERSION = "1.0.2"
 
 from aegis.wrapper import AegisWrapper
 
