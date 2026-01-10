@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aegis-agent"
-version = "1.0.0"
+version = "1.0.3"
 description = "Human-in-the-loop control layer for AI agents"
 readme = "README.md"
 license = {text = "MIT"}
