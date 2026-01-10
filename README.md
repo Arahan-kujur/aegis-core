@@ -293,37 +293,6 @@ Aegis is explicitly NOT for:
 
 If you need authentication, persistence, production deployment features, or complex workflows, Aegis is not the right tool. Use a different system designed for those requirements.
 
-## Making a Release
-
-To create a release of Aegis:
-
-1. **Tag the release**: Create a git tag for the version (e.g., `v1.0.0`)
-   ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
-
-2. **Freeze main branch**: After tagging, no further commits should be made to main without:
-   - Bumping the version number in `aegis/__init__.py`
-   - Updating `docs/RELEASE_NOTES.md` with the new version
-   - Making an explicit scope decision about what changes are included
-
-3. **What constitutes a breaking change**:
-   - API changes (function signatures, return types, class interfaces)
-   - Log format changes (structure or required fields)
-   - Risk level semantics changes (meaning of "low", "medium", "high")
-   - Action format changes (normalized action structure)
-   - Rule system changes (how rules are defined or evaluated)
-   - Approval flow changes (how approvals are requested or processed)
-   - Policy version changes without migration guidance
-
-4. **Control guarantees must not change silently**: 
-   - High-risk actions must always require human approval
-   - Risk evaluation must remain deterministic
-   - Log format must remain backward compatible
-   - Any change to these guarantees is a breaking change and requires a major version bump
-
-The version number in `aegis/__init__.py` is the single source of truth for the project version.
 
 ## When Aegis Matters
 
